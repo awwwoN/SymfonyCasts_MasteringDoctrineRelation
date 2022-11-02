@@ -25,6 +25,11 @@ class AppFixtures extends Fixture
               'question' => $questions[array_rand($questions)],
             ];
         });
+        AnswerFactory::new(function() use ($questions) {
+            return [
+                'question' => $questions[array_rand($questions)],
+            ];
+        })->needsApproval()->many(20)->create();
 
         $manager->flush();
     }
