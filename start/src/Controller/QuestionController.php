@@ -7,6 +7,8 @@ use App\Repository\AnswerRepository;
 use App\Repository\QuestionRepository;
 use App\Service\MarkdownHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use Pagerfanta\Doctrine\ORM\QueryAdapter;
+use Pagerfanta\Pagerfanta;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,14 +28,20 @@ class QuestionController extends AbstractController
 
 
     /**
-     * @Route("/", name="app_homepage")
+     * @Route("/{page<\d+>}", name="app_homepage")
      */
-    public function homepage(QuestionRepository $repository)
+    public function homepage(QuestionRepository $repository, int $page = 1)
     {
-        $questions = $repository->findAllAskedOrderedByNewest();
+        $queryBuilder = $repository->createAskedOrderedByNewestQueryBuilder();
+
+        $pagerFanta = new Pagerfanta(
+            new QueryAdapter($queryBuilder)
+        );
+        $pagerFanta->setMaxPerPage(5);
+        $pagerFanta->setCurrentPage($page);
 
         return $this->render('question/homepage.html.twig', [
-            'questions' => $questions,
+            'pager' => $pagerFanta,
         ]);
     }
 
